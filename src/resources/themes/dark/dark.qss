@@ -1,0 +1,308 @@
+/* black.qss */
+
+#time_tracker {
+    background-color: #505050;
+}
+
+/* scroll area on list page */
+#scrollAreaList, QCalendarWidget {
+    background-color: #505050;
+    border: none;
+}
+
+/* side menu */
+#sideMenu {
+    background-color: #3c3c3c;
+    border: none;
+}
+
+/* Buttons in side menu */
+#sideMenu QPushButton {
+    color: white;
+    border: none;
+    padding: 10px;
+    background-color: #3c3c3c;
+    font-size: 25px;
+    font-family: 'Varela Round';
+    qproperty-iconSize: 30px 30px;
+    text-align:left;
+}
+
+#sideMenu QPushButton:hover {
+    background-color: #535353;
+}
+
+#sideMenu QPushButton:pressed {
+    background-color: #404247;
+}
+
+#sideMenu QLabel {
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+#listButton {
+    qproperty-icon: url({{taskIcon}});
+}
+
+#histButton {
+    qproperty-icon: url({{historyIcon}});
+}
+
+#settButton {
+    qproperty-icon: url({{settingsIcon}});
+}
+
+#profButton {
+    qproperty-icon: url({{profileIcon}});
+}
+
+/* main menu button */
+QPushButton#menuButton {
+   border: none;
+   qproperty-icon: url({{menuIcon}}) no-repeat center center;
+}
+
+/* tasks buttons */
+
+#taskName {
+    color: white;
+    font-size: 14px;
+    border: none;
+    background-color: #505050;
+}
+
+#addTaskButton {
+    color: white;
+    border: none;
+    border-radius: 19px;
+    padding: 10px;
+    background-color: #3c3c3c;
+    font-size: 25px;
+    font-family: 'Varela Round';
+    text-align:center;
+}
+
+#addTaskButton:hover {
+    background-color: #535353;
+}
+
+#addTaskButton:pressed {
+    background-color: #404247;
+}
+
+#historyHeader {
+    color: white;
+    font-size: 20px;
+    padding: 10px;
+}
+
+#historyCalendar {
+    background-color: #505050;
+    color: white;
+    selection-background-color: #3c3c3c;
+}
+
+#historyTaskTable {
+    background-color: #3c3c3c;
+    color: white;
+    border: 1px solid #404247;
+}
+
+#historyTaskTable QHeaderView::section {
+    background-color: #404247;
+    color: white;
+    padding: 4px;
+    border: 1px solid #505050;
+}
+
+/* StartPage styles */
+#startPage {
+    background-color: #1e1e1e;
+}
+
+#startPage QLabel {
+    color: #ffffff;
+    font-size: 16px;
+}
+
+#startPage QLineEdit {
+    padding: 8px;
+    border: 1px solid #3d3d3d;
+    border-radius: 4px;
+    background-color: #2d2d2d;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+#startPage QLineEdit:focus {
+    border: 1px solid #007acc;
+}
+
+#startPage QPushButton {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007acc;
+    color: #ffffff;
+    font-size: 14px;
+    min-width: 100px;
+}
+
+#startPage QPushButton:hover {
+    background-color: #0098ff;
+}
+
+#startPage QPushButton:pressed {
+    background-color: #005c99;
+}
+
+#startPage QCheckBox {
+    color: #ffffff;
+    font-size: 14px;
+}
+
+#startPage QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #3d3d3d;
+    border-radius: 3px;
+    background-color: #2d2d2d;
+}
+
+#startPage QCheckBox::indicator:checked {
+    background-color: #007acc;
+    border: 1px solid #007acc;
+}
+
+#startPage QCheckBox::indicator:hover {
+    border: 1px solid #0098ff;
+}
+
+/* Add spacing between elements */
+#startPage QVBoxLayout > * {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+/* PomodoroTimer styles */
+#pomodoroTimer {
+    background-color: #1e1e1e;
+    min-width: 400px;
+    min-height: 400px;
+    padding: 20px;
+}
+
+#pomodoroTimer #timeLabel {
+    color: #ffffff;
+    font-size: 48px;
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+#pomodoroTimer #phaseLabel {
+    color: #ffffff;
+    font-size: 24px;
+    margin: 10px 0;
+}
+
+#pomodoroTimer #cycleLabel {
+    color: #cccccc;
+    font-size: 16px;
+    margin: 10px 0;
+}
+
+#pomodoroTimer QPushButton {
+    min-width: 100px;
+    padding: 8px 16px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #ffffff;
+}
+
+#pomodoroTimer #startPauseButton {
+    background-color: #2ecc71;
+}
+
+#pomodoroTimer #startPauseButton:hover {
+    background-color: #27ae60;
+}
+
+#pomodoroTimer #resetButton {
+    background-color: #e74c3c;
+}
+
+#pomodoroTimer #resetButton:hover {
+    background-color: #c0392b;
+}
+
+#pomodoroTimer #skipButton {
+    background-color: #3498db;
+}
+
+#pomodoroTimer #skipButton:hover {
+    background-color: #2980b9;
+}
+
+#pomodoroTimer QPushButton:disabled {
+    background-color: #666666;
+    color: #999999;
+}
+
+/* DayCard Styles */
+#dayCard {
+    background-color: #2b2b2b;
+    border: 1px solid #333;
+    border-radius: 8px;
+}
+
+#dayLabel {
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+}
+
+#daySeparator {
+    background-color: #333;
+    height: 2px;
+}
+
+#tasksContainer {
+    background: transparent;
+}
+
+.taskFrame {
+    background-color: #333;
+    border: 1px solid #444;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.taskNameLabel {
+    font-weight: bold;
+    color: #fff;
+}
+
+.taskStatusLabel {
+    color: #888;
+}
+
+.cyclesLabel {
+    font-size: 16px;
+    color: #ffd700;
+}
+
+.editButton {
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: 12px;
+    color: #888;
+    background: transparent;
+}
+
+.editButton:hover {
+    color: #fff;
+}

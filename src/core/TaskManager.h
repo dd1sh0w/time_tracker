@@ -11,20 +11,21 @@ class TaskManager : public QObject
     Q_OBJECT
 public:
     explicit TaskManager(int userId, QObject *parent = nullptr);
-    int getTotalCycles(int taskId) const;
-
-    // Task operations
     QList<QVariantMap> getAllTasks() const;
-    int createTask(const QString &name);
-    bool updateTask(int taskId, const QVariantMap &data);
-    bool deleteTask(int taskId);
+    int createTask(const QString &name, const QDate &deadline = QDate::currentDate());
+    bool startTask(int taskId);
     bool completeTask(int taskId);
+    int getTotalCycles(int taskId) const;
+    bool deleteTask(int taskId);
     bool recordPomodoro(int taskId);
     int getCompletedPomodoros(int taskId);
     QList<QVariantMap> getPomodoroStats(int taskId);
     QVariantMap getTaskData(int taskId) const;
     int getActiveTask() const;
     bool setActiveTask(int taskId);
+    bool pauseTask(int taskId);
+    bool resumeTask(int taskId);
+    bool updateTask(int taskId, const QVariantMap &data);
 
 signals:
     void taskCreated(int taskId, const QVariantMap &taskData);

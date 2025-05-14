@@ -6,22 +6,34 @@
 #include <QDebug>
 #include <QApplication>
 #include <QSettings>
-
+#include <QStandardPaths>
+#include <QCoreApplication>
 
 ThemeManager::ThemeManager(QObject *parent)
     : QObject(parent)
 {
-    m_baseThemePath = "C:\\Instruments\\Qt Projects\\time_tracker\\src\\resources\\themes\\";
+    QSettings settings(QSettings::NativeFormat, QSettings::UserScope, "voodz_d1sh0w", "time_tracker");
     
-    QSettings settings(QSettings::NativeFormat, QSettings::UserScope, "voodz_d1sh0w", "time_tracker");;
+    // Load theme path from settings or use default
+    if (settings.contains("themePath")) {
+        m_baseThemePath = settings.value("themePath").toString();
+        qDebug() << "TME: Loaded theme path from settings:" << m_baseThemePath;
+    } else {
+        // Default path relative to the application directory
+        m_baseThemePath = QCoreApplication::applicationDirPath() + "/../src/resources/themes/";
+        m_baseThemePath = QDir::cleanPath(m_baseThemePath) + "/";
+        qDebug() << "TME: Using default theme path:" << m_baseThemePath;
+    }
+    
+    // Load current theme
     if (settings.contains("theme")) {
         m_currentTheme = settings.value("theme").toString();
         qDebug() << "TME: Read theme from QSettings:" << m_currentTheme;
+        if (!m_currentTheme.isEmpty()) {
+            applyTheme(m_currentTheme);
+        }
     } else {
         qDebug() << "TME: 'theme' key is missing in QSettings";
-    }
-    if (!m_currentTheme.isEmpty()) {
-            applyTheme(m_currentTheme);
     }
 }
 

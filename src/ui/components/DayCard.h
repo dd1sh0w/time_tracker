@@ -10,6 +10,7 @@ class QVBoxLayout;
 class QLabel;
 class QFrame;
 class QScrollArea;
+class QHBoxLayout;
 
 class DayCard : public QWidget {
     Q_OBJECT
@@ -38,6 +39,7 @@ private:
     QFrame *m_separator;
     QScrollArea *m_tasksContainer;
     QVBoxLayout *m_tasksLayout;
+    QHBoxLayout *m_cyclesLayout;
 };
 
 #endif // DAYCARD_H

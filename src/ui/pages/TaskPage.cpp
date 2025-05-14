@@ -3,9 +3,10 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include "../components/DayCard.h"
+#include "../../logging/logger.h"
 
 TaskPage::TaskPage(int userId, QWidget *parent, TaskManager* taskManager)
-    : BasePage(parent), m_userId(userId), m_taskManager(taskManager)
+    : BasePage(parent), m_userId(userId), m_taskManager(taskManager), m_pomodoroTimer(nullptr)
 {
     setupUi();
     setupConnections();
@@ -14,7 +15,7 @@ TaskPage::TaskPage(int userId, QWidget *parent, TaskManager* taskManager)
 void TaskPage::setupUi()
 {
     QVBoxLayout *layout = new QVBoxLayout(this);
-    m_pomodoroTimer = new PomodoroTimer(this);
+    m_pomodoroTimer = new PomodoroTimer(this, m_taskManager);
     layout->addWidget(m_pomodoroTimer);
     //layout->addStretch();
     setLayout(layout);
@@ -24,25 +25,29 @@ void TaskPage::setupConnections()
 {
     // Timer connections
     connect(m_pomodoroTimer, &PomodoroTimer::phaseCompleted, this, &TaskPage::onPomodoroPhaseCompleted);
+    
+    // TaskManager connections
+    if (m_taskManager) {
+        connect(m_taskManager, &TaskManager::taskStarted, this, &TaskPage::onTaskStarted);
+        connect(m_taskManager, &TaskManager::activeTaskChanged, this, &TaskPage::onActiveTaskChanged);
+    }
 }
 
 void TaskPage::startTask(const TaskInfo &task)
 {
     qDebug() << "TaskPage: exec startTask";
-    if (m_taskManager && m_pomodoroTimer) {
-        qDebug() << "TaskPage: exec startTask - task id:" << task.taskId;
-        bool setActiveSuccess = m_taskManager->setActiveTask(task.taskId);
-        if (setActiveSuccess) {
-            // Wait for the activeTaskChanged signal to ensure the task is properly set
-            connect(m_taskManager, &TaskManager::activeTaskChanged, this, [this, task, setActiveSuccess]() {
-                if (setActiveSuccess && m_taskManager->getActiveTask() == task.taskId) {
-                    m_pomodoroTimer->setActiveTaskName(task.taskName);
-                    m_pomodoroTimer->startTimer();
-                }
-            }, Qt::QueuedConnection);
-        } else {
-            showError(tr("Failed to start task"));
-        }
+    if (!m_taskManager || !m_pomodoroTimer) {
+        qDebug() << "TaskPage: task manager or pomodoro timer is null";
+        return;
+    }
+    
+    qDebug() << "TaskPage: exec startTask - task id:" << task.taskId;
+    bool setActiveSuccess = m_taskManager->setActiveTask(task.taskId);
+    if (setActiveSuccess) {
+        // Обновляем UI сразу, так как setActiveTask уже эмиттирует taskStarted
+        m_pomodoroTimer->setActiveTaskName(task.taskName);
+    } else {
+        showError(tr("Failed to start task"));
     }
 }
 
@@ -53,25 +58,24 @@ void TaskPage::onActiveTaskChanged(int taskId)
         QVariantMap taskData = m_taskManager->getTaskData(taskId);
         if (!taskData.isEmpty()) {
             m_pomodoroTimer->setActiveTaskName(taskData.value("name").toString());
-            m_pomodoroTimer->startTimer();
+            // Не запускаем таймер здесь, так как он уже должен быть запущен в onTaskStarted
         }
     }
 }
 
 void TaskPage::onTaskStarted(int taskId, const QVariantMap &taskData)
 {
-    TaskInfo task;
-    task.taskId = taskId;
-    task.taskName = taskData.value("name").toString();
-    task.cycles = taskData.value("planned_cycles").toInt();
-    task.status = taskData.value("status").toString();
-    task.priority = taskData.value("priority").toString();
-    task.description = taskData.value("description").toString();
-    task.deadline = taskData.value("deadline").toDate();
-    task.completedAt = taskData.value("completed_at").toDateTime();
-    task.details = taskData.value("details").toString();
+    auto ctx = std::map<std::string, std::string>{{{"taskId", std::to_string(taskId)}}};
+    LOG_INFO("TaskPage", "Task started", ctx);
     
-    handleStartTaskClicked(task);
+    if (!m_pomodoroTimer) {
+        auto ctxWarn = std::map<std::string, std::string>{{{"taskId", std::to_string(taskId)}}};
+        LOG_WARNING("TaskPage", "PomodoroTimer is null in onTaskStarted", ctxWarn);
+        return;
+    }
+    
+    m_pomodoroTimer->setActiveTaskName(taskData.value("name").toString());
+    m_pomodoroTimer->startTimer();
 }
 
 void TaskPage::onPomodoroPhaseCompleted(PomodoroPhase phase)

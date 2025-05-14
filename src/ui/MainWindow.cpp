@@ -4,18 +4,44 @@
 #include <QHBoxLayout>
 #include <QDebug>
 #include <QThread>
+#include <QMessageBox>
 #include "logging/logger.h"
+#include "../Application.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), m_currentUserId(-1), m_startPage(nullptr)
+    : QMainWindow(parent), m_currentUserId(-1), m_startPage(nullptr), m_taskPage(nullptr), m_taskManager(nullptr)
 {
     LOG_INFO("MainWindow", "Initializing MainWindow", {});
     setAttribute(Qt::WA_StyledBackground, true);
     setObjectName("time_tracker");
+    
     setupUi();
     setupConnections();
     showLoginPage();
     LOG_INFO("MainWindow", "MainWindow initialized and login page shown", {});
+}
+
+void MainWindow::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    QMainWindow::changeEvent(event);
+}
+
+void MainWindow::retranslateUi()
+{
+    // Update window title
+    setWindowTitle(tr("Time Tracker"));
+    
+    // Update side menu items
+    if (m_sideMenu) {
+        m_sideMenu->retranslateUi();
+    }
+    
+    // Update page titles and other UI elements
+    // Note: Individual pages should handle their own retranslation
+    // by implementing changeEvent and checking for LanguageChange
 }
 
 MainWindow::~MainWindow() { 
@@ -52,6 +78,7 @@ void MainWindow::setupConnections()
 {
     LOG_DEBUG("MainWindow", "Setting up connections", {});
     connect(m_sideMenu, &SideMenu::menuItemClicked, this, &MainWindow::onMenuItemClicked);
+    connect(m_sideMenu, &SideMenu::pageShown, this, &MainWindow::onPageShown);
     connect(m_startPage, &StartPage::loginSuccess, this, &MainWindow::onLoginSuccess);
     
     // Connect TaskManager signals to TaskPage slots
@@ -66,8 +93,12 @@ void MainWindow::setupConnections()
 void MainWindow::showLoginPage()
 {
     LOG_INFO("MainWindow", "Showing login page", {});
-    // Hide side menu first
-    m_sideMenu->hide();
+    
+    // Hide and cleanup side menu
+    if (m_sideMenu) {
+        m_sideMenu->hide();
+        m_sideMenu->blockSignals(true);
+    }
     
     // Remove all pages except start page
     while (m_pages->count() > 0) {
@@ -81,12 +112,27 @@ void MainWindow::showLoginPage()
         }
     }
     
+    // Clear task manager
+    if (m_taskManager) {
+        m_taskManager->disconnect();
+        m_taskManager->deleteLater();
+        m_taskManager = nullptr;
+    }
+    
+    // Reset page pointers
+    m_taskPage = nullptr;
+    m_historyPage = nullptr;
+    m_settingsPage = nullptr;
+    m_profilePage = nullptr;
+    
     // Add and show start page
-    m_pages->addWidget(m_startPage);
-    m_pages->setCurrentWidget(m_startPage);
+    if (m_startPage) {
+        m_pages->addWidget(m_startPage);
+        m_pages->setCurrentWidget(m_startPage);
+    }
 
     // Try auto-login
-    if (!m_startPage->tryAutoLogin()) {
+    if (!m_startPage || !m_startPage->tryAutoLogin()) {
         LOG_DEBUG("MainWindow", "Auto-login not possible", {});
         // No auto-login possible, stay on login page
     } else {
@@ -99,8 +145,30 @@ void MainWindow::showMainContent(int userId)
     auto ctxUserId = std::map<std::string, std::string>{{"userId", std::to_string(userId)}};
     LOG_INFO("MainWindow", "Showing main content", ctxUserId);
     m_currentUserId = userId;
+
+    // Проверяем и создаем TaskManager
+    if (!m_taskManager) {
+        m_taskManager = new TaskManager(userId, this);
+        if (!m_taskManager) {
+            LOG_ERROR("MainWindow", "Failed to create TaskManager", ctxUserId);
+            return;
+        }
+    }
+
+    // Проверяем и создаем TaskPage
+    if (!m_taskPage) {
+        m_taskPage = new TaskPage(userId, this, m_taskManager);
+        if (!m_taskPage) {
+            LOG_ERROR("MainWindow", "Failed to create TaskPage", ctxUserId);
+            return;
+        }
+    }
+
+    // Hide the side menu before making changes
+    m_sideMenu->hide();
+    m_sideMenu->blockSignals(false);
     
-    // Remove all pages except start page
+    // Clear all pages
     while (m_pages->count() > 0) {
         QWidget *widget = m_pages->widget(0);
         if (widget != m_startPage) {
@@ -112,31 +180,39 @@ void MainWindow::showMainContent(int userId)
         }
     }
     
-    m_taskPage = new TaskPage(userId, this, m_taskManager);
-    m_taskPage->setObjectName("taskPage");
-
     // Create and add all main pages
-    m_historyPage = new HistoryPage(userId, this, m_taskManager);
-    m_historyPage->setObjectName("historyPage");
-    connect(m_historyPage, &HistoryPage::startTaskClicked, this, &MainWindow::onStartTaskFromHistory);
-
-    m_settingsPage = new SettingsPage(this);
-    m_settingsPage->setObjectName("settingsPage");
+    if (!m_taskPage) {
+        m_taskPage = new TaskPage(userId, this, m_taskManager);
+        m_taskPage->setObjectName("taskPage");
+    }
     
-    m_profilePage = new ProfilePage(userId, this);
-    m_profilePage->setObjectName("profilePage");
+    if (!m_historyPage) {
+        m_historyPage = new HistoryPage(userId, this, m_taskManager);
+        m_historyPage->setObjectName("historyPage");
+        connect(m_historyPage, &HistoryPage::startTaskClicked, this, &MainWindow::onStartTaskFromHistory);
+    }
     
-    // Connect logout signal from profile page
-    connect(m_profilePage, &ProfilePage::logoutRequested, this, &MainWindow::onLogoutRequested, Qt::QueuedConnection);
-
+    if (!m_settingsPage) {
+        m_settingsPage = new SettingsPage(this);
+        m_settingsPage->setObjectName("settingsPage");
+    }
+    
+    if (!m_profilePage) {
+        m_profilePage = new ProfilePage(userId, this);
+        m_profilePage->setObjectName("profilePage");
+        // Connect logout signal from profile page
+        connect(m_profilePage, &ProfilePage::logoutRequested, this, &MainWindow::onLogoutRequested, Qt::QueuedConnection);
+    }
+    
+    // Add pages to the stack
     m_pages->addWidget(m_taskPage);
     m_pages->addWidget(m_historyPage);
     m_pages->addWidget(m_settingsPage);
     m_pages->addWidget(m_profilePage);
-
-    // Show side menu and first page
+    
+    // Show side menu and set current page
     m_sideMenu->show();
-    m_pages->setCurrentIndex(0);
+    m_pages->setCurrentWidget(m_taskPage);
     LOG_INFO("MainWindow", "Main content shown", ctxUserId);
 }
 
@@ -193,4 +269,34 @@ void MainWindow::onStartTaskFromHistory(const TaskInfo &task) {
     m_taskManager->setActiveTask(task.taskId);
     m_taskPage->startTask(task);
     LOG_INFO("MainWindow", "Task started from history", ctxTaskId);
+}
+
+void MainWindow::onPageShown(int index)
+{
+    auto ctxIndex = std::map<std::string, std::string>{{ "index", std::to_string(index) }};
+    LOG_DEBUG("MainWindow", "Page shown", ctxIndex);
+    
+    QWidget* currentPage = m_pages->widget(index);
+    if (!currentPage) {
+        LOG_WARNING("MainWindow", "Page not found", ctxIndex);
+        return;
+    }
+    
+    // Set the current page
+    m_pages->setCurrentIndex(index);
+    
+    // Refresh the page based on its type
+    if (index == 0 && m_taskPage) {
+        LOG_DEBUG("MainWindow", "Refreshing TaskPage", {});
+        //m_taskPage->loadTasks();
+    } else if (index == 1 && m_historyPage) {
+        LOG_DEBUG("MainWindow", "Refreshing HistoryPage", {});
+        m_historyPage->loadHistory();
+    } else if (index == 2 && m_settingsPage) {
+        LOG_DEBUG("MainWindow", "Refreshing SettingsPage", {});
+        // Add settings page refresh logic if needed
+    } else if (index == 3 && m_profilePage) {
+        LOG_DEBUG("MainWindow", "Refreshing ProfilePage", {});
+        // Add profile page refresh logic if needed
+    }
 }

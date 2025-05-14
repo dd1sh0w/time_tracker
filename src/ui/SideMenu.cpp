@@ -1,6 +1,8 @@
 #include "SideMenu.h"
 #include <QIcon>
 #include <QDebug>
+#include <QEvent>
+#include <QStyle>
 #include "../logging/logger.h"
 
 SideMenu::SideMenu(QWidget *parent)
@@ -36,23 +38,23 @@ void SideMenu::initWidgets()
     auto ctx = std::map<std::string, std::string>{};
     LOG_DEBUG("SideMenu", "Initializing SideMenu widgets", ctx);
     menuButton = new QPushButton(this);
-    menuButton->setToolTip("Menu");
+    menuButton->setToolTip(tr("Menu"));
     menuButton->setObjectName("menuButton");
 
-    listButton = new QPushButton(this);
-    listButton->setToolTip("Tasks");
-    listButton->setObjectName("listButton");
+    timerButton = new QPushButton(this);
+    timerButton->setToolTip(tr("Timer"));
+    timerButton->setObjectName("timerButton");
 
     histButton = new QPushButton(this);
-    histButton->setToolTip("History");
+    histButton->setToolTip(tr("History"));
     histButton->setObjectName("histButton");
 
     settButton = new QPushButton(this);
-    settButton->setToolTip("Settings");
+    settButton->setToolTip(tr("Settings"));
     settButton->setObjectName("settButton");
 
     profButton = new QPushButton(this);
-    profButton->setToolTip("Profile");
+    profButton->setToolTip(tr("Profile"));
     profButton->setObjectName("profButton");
 }
 
@@ -64,7 +66,7 @@ void SideMenu::initLayout()
     menuLayout->setContentsMargins(0, 0, 0, 0);
     menuLayout->setSpacing(0);
     menuLayout->addWidget(menuButton);
-    menuLayout->addWidget(listButton);
+    menuLayout->addWidget(timerButton);
     menuLayout->addWidget(histButton);
     menuLayout->addWidget(settButton);
     menuLayout->addWidget(profButton);
@@ -77,25 +79,29 @@ void SideMenu::initConnections()
     auto ctx = std::map<std::string, std::string>{};
     LOG_DEBUG("SideMenu", "Initializing SideMenu connections", ctx);
     connect(menuButton, &QPushButton::clicked, this, &SideMenu::toggleMenu);
-    connect(listButton, &QPushButton::clicked, [this]() { 
+    connect(timerButton, &QPushButton::clicked, [this]() { 
         auto ctx = std::map<std::string, std::string>{{{"index", "0"}}};
         LOG_INFO("SideMenu", "Menu item clicked", ctx);
-        emit menuItemClicked(0); 
+        emit menuItemClicked(0);
+        emit pageShown(0);
     });
     connect(histButton, &QPushButton::clicked, [this]() { 
         auto ctx = std::map<std::string, std::string>{{{"index", "1"}}};
         LOG_INFO("SideMenu", "Menu item clicked", ctx);
-        emit menuItemClicked(1); 
+        emit menuItemClicked(1);
+        emit pageShown(1);
     });
     connect(settButton, &QPushButton::clicked, [this]() { 
         auto ctx = std::map<std::string, std::string>{{{"index", "2"}}};
         LOG_INFO("SideMenu", "Menu item clicked", ctx);
-        emit menuItemClicked(2); 
+        emit menuItemClicked(2);
+        emit pageShown(2);
     });
     connect(profButton, &QPushButton::clicked, [this]() { 
         auto ctx = std::map<std::string, std::string>{{{"index", "3"}}};
         LOG_INFO("SideMenu", "Menu item clicked", ctx);
-        emit menuItemClicked(3); 
+        emit menuItemClicked(3);
+        emit pageShown(3);
     });
 }
 
@@ -124,12 +130,55 @@ void SideMenu::toggleMenu()
     emit menuToggled(m_isOpen);
 }
 
+void SideMenu::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange) {
+        retranslateUi();
+    }
+    QWidget::changeEvent(event);
+}
+
+void SideMenu::retranslateUi()
+{
+    // Update tooltips
+    menuButton->setToolTip(tr("Menu"));
+    timerButton->setToolTip(tr("Timer"));
+    histButton->setToolTip(tr("History"));
+    settButton->setToolTip(tr("Settings"));
+    profButton->setToolTip(tr("Profile"));
+    
+    // Update button texts if menu is open
+    if (m_isOpen) {
+        updateMenuAppearance();
+    }
+}
+
 void SideMenu::updateMenuAppearance()
 {
     auto ctx = std::map<std::string, std::string>{};
     LOG_DEBUG("SideMenu", "Updating SideMenu appearance", ctx);
-    listButton->setText("List");
-    histButton->setText("History");
-    settButton->setText("Settings");
-    profButton->setText("Profile");
+    
+    // Set icons
+    menuButton->setIcon(QIcon(":/icons/menu.png"));
+    timerButton->setIcon(QIcon(":/icons/timer.png"));
+    histButton->setIcon(QIcon(":/icons/history.png"));
+    settButton->setIcon(QIcon(":/icons/settings.png"));
+    profButton->setIcon(QIcon(":/icons/profile.png"));
+    
+    timerButton->setText(tr("Timer"));
+    histButton->setText(tr("History"));
+    settButton->setText(tr("Settings"));
+    profButton->setText(tr("Profile"));
+    
+    // Update styles
+    setStyleSheet("QPushButton { text-align: left; padding: 10px; border: none; }");
+    
+    // Update layout
+    if (menuLayout) {
+        menuLayout->update();
+    }
+    
+    // Force update the widget
+    updateGeometry();
+    update();
 }

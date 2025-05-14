@@ -24,15 +24,22 @@ public:
 signals:
     void menuItemClicked(int index);
     void menuToggled(bool isOpen);
+    void pageShown(int index);
 
 private:
     void initWidgets();
     void initLayout();
     void initConnections();
     void updateMenuAppearance();
+    
+protected:
+    void changeEvent(QEvent *event) override;
+    
+public:
+    void retranslateUi();
 
     QPushButton *menuButton;
-    QPushButton *listButton;
+    QPushButton *timerButton;
     QPushButton *histButton;
     QPushButton *settButton;
     QPushButton *profButton;

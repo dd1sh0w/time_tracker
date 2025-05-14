@@ -1,22 +1,32 @@
-/* black.qss */
+/*
+ * Black Theme - Structured and Organized
+ * 
+ * A dark theme with dark gray backgrounds and white text
+ * Primary background: #505050
+ * Secondary background: #3c3c3c
+ * Accent color: #007acc
+ */
 
+/* ======================================
+ * GLOBAL ELEMENTS
+ * ====================================== */
+
+/* Time tracker main container */
 #time_tracker {
     background-color: #505050;
 }
 
-/* scroll area on list page */
-#scrollAreaList, QCalendarWidget {
-    background-color: #505050;
-    border: none;
-}
+/* ======================================
+ * NAVIGATION & SIDE MENU
+ * ====================================== */
 
-/* side menu */
+/* Side menu panel */
 #sideMenu {
     background-color: #3c3c3c;
     border: none;
 }
 
-/* Buttons in side menu */
+/* Generic side menu buttons styling */
 #sideMenu QPushButton {
     color: white;
     border: none;
@@ -25,7 +35,7 @@
     font-size: 25px;
     font-family: 'Varela Round';
     qproperty-iconSize: 30px 30px;
-    text-align:left;
+    text-align: left;
 }
 
 #sideMenu QPushButton:hover {
@@ -41,8 +51,9 @@
     font-size: 14px;
 }
 
-#listButton {
-    qproperty-icon: url({{taskIcon}});
+/* Specific side menu buttons */
+#timerButton {
+    qproperty-icon: url({{timerIcon}});
 }
 
 #histButton {
@@ -57,14 +68,27 @@
     qproperty-icon: url({{profileIcon}});
 }
 
-/* main menu button */
+/* Main menu button */
 QPushButton#menuButton {
    border: none;
    qproperty-icon: url({{menuIcon}}) no-repeat center center;
 }
 
-/* tasks buttons */
+/* ======================================
+ * SCROLLING & CONTAINERS
+ * ====================================== */
 
+/* Scroll area on list page */
+#scrollAreaList, QCalendarWidget {
+    background-color: #505050;
+    border: none;
+}
+
+/* ======================================
+ * TASK MANAGEMENT
+ * ====================================== */
+
+/* Task name styling */
 #taskName {
     color: white;
     font-size: 14px;
@@ -72,6 +96,7 @@ QPushButton#menuButton {
     background-color: #505050;
 }
 
+/* Add task button */
 #addTaskButton {
     color: white;
     border: none;
@@ -80,7 +105,7 @@ QPushButton#menuButton {
     background-color: #3c3c3c;
     font-size: 25px;
     font-family: 'Varela Round';
-    text-align:center;
+    text-align: center;
 }
 
 #addTaskButton:hover {
@@ -90,6 +115,41 @@ QPushButton#menuButton {
 #addTaskButton:pressed {
     background-color: #404247;
 }
+
+/* Task status styles */
+#taskStatusLabel[status="overdue"] {
+    color: red;
+}
+
+#taskStatusLabel[status="onhold"] {
+    color: orange;
+}
+
+/* Task frames and containers */
+.taskFrame {
+    background-color: #333;
+    border: 1px solid #444;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.taskNameLabel {
+    font-weight: bold;
+    color: #fff;
+}
+
+.taskStatusLabel {
+    color: #888;
+}
+
+/* Tasks container */
+#tasksContainer {
+    background: transparent;
+}
+
+/* ======================================
+ * HISTORY PAGE
+ * ====================================== */
 
 #historyHeader {
     color: white;
@@ -116,7 +176,21 @@ QPushButton#menuButton {
     border: 1px solid #505050;
 }
 
-/* StartPage styles */
+#detailsHeaderLabel {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* History Page Header */
+#historyHeader {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* ======================================
+ * START PAGE
+ * ====================================== */
+
 #startPage {
     background-color: #1e1e1e;
 }
@@ -185,33 +259,59 @@ QPushButton#menuButton {
     margin-bottom: 10px;
 }
 
-/* PomodoroTimer styles */
+/* ======================================
+ * POMODORO TIMER
+ * ====================================== */
+
 #pomodoroTimer {
-    background-color: #1e1e1e;
-    min-width: 400px;
-    min-height: 400px;
+    background-color: transparent;
+    min-width: 300px;
+    min-height: 300px;
     padding: 20px;
+    qproperty-timerCircleWidth: 8px;
+}
+
+#pomodoroTimer #labelContainer {
+    background-color: transparent;
+    border: none;
+    border-radius: 150px;
+    min-width: 300px;
+    min-height: 300px;
 }
 
 #pomodoroTimer #timeLabel {
     color: #ffffff;
     font-size: 48px;
     font-weight: bold;
-    margin: 20px 0;
+    margin: 10px 0;
 }
 
 #pomodoroTimer #phaseLabel {
     color: #ffffff;
     font-size: 24px;
-    margin: 10px 0;
+    font-weight: bold;
+    margin: 5px 0;
 }
 
 #pomodoroTimer #cycleLabel {
     color: #cccccc;
     font-size: 16px;
+    opacity: 0.8;
     margin: 10px 0;
 }
 
+#pomodoroTimer #activeTaskLabel {
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+#pomodoroTimer #activeTaskNameLabel {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* Pomodoro control buttons */
 #pomodoroTimer QPushButton {
     min-width: 100px;
     padding: 8px 16px;
@@ -251,7 +351,27 @@ QPushButton#menuButton {
     color: #999999;
 }
 
-/* DayCard Styles */
+#pomodoroTimer #resetTaskButton {
+    padding: 2px 8px;
+    font-size: 12px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #444;
+    color: #fff;
+}
+
+#pomodoroTimer #resetTaskButton:hover {
+    background-color: #555;
+}
+
+#pomodoroTimer #resetTaskButton:pressed {
+    background-color: #333;
+}
+
+/* ======================================
+ * DAY CARD STYLES
+ * ====================================== */
+
 #dayCard {
     background-color: #2b2b2b;
     border: 1px solid #333;
@@ -269,30 +389,77 @@ QPushButton#menuButton {
     height: 2px;
 }
 
-#tasksContainer {
-    background: transparent;
-}
+/* ======================================
+ * SETTINGS PAGE
+ * ====================================== */
 
-.taskFrame {
-    background-color: #333;
-    border: 1px solid #444;
-    border-radius: 4px;
-    margin-bottom: 8px;
-}
-
-.taskNameLabel {
+#settingsTitleLabel {
+    font-size: 22px;
     font-weight: bold;
-    color: #fff;
 }
 
-.taskStatusLabel {
-    color: #888;
+/* ======================================
+ * CYCLES & PROGRESS INDICATORS
+ * ====================================== */
+
+/* Cycles label with stars */
+.cyclesContainer {
+    spacing: 2px;
 }
 
-.cyclesLabel {
-    font-size: 16px;
-    color: #ffd700;
+.starIcon {
+    width: 16px;
+    height: 16px;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0 1px;
 }
+
+.starIcon[data-state="filled"] {
+    qproperty-pixmap: url({{starFilledIcon}});
+}
+
+.starIcon[data-state="hollow"] {
+    qproperty-pixmap: url({{starHollowIcon}});
+}
+
+/* Style for hollow stars (☆) */
+.cyclesLabel:not(:empty)::before {
+    content: "\2606";  /* Unicode for hollow star */
+    color: #666666;     /* Darker color for hollow stars */
+}
+
+/* Override with filled stars (★) for completed cycles */
+.cyclesLabel:not(:empty)::before {
+    content: "";  /* Clear default content */
+}
+
+.cyclesLabel:not(:empty) {
+    color: #666666;  /* Default color for hollow stars */
+}
+
+/* Filled stars for completed cycles */
+.cyclesLabel:not(:empty) {
+    display: inline-block;
+    position: relative;
+    color: #ffd700;  /* Gold color for filled stars */
+}
+
+.cyclesLabel:not(:empty)::after {
+    content: attr(data-filled);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    color: #ffd700;  /* Gold color for filled stars */
+}
+
+/* ======================================
+ * UTILITY COMPONENTS
+ * ====================================== */
 
 .editButton {
     border: none;

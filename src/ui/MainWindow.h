@@ -28,12 +28,17 @@ private slots:
     void onLogoutRequested();
     void onStartTaskFromHistory(const TaskInfo &task);
     void onTaskStarted(int taskId, const QVariantMap &taskData);
+    void onPageShown(int index);
+
+protected:
+    void changeEvent(QEvent *event) override;
 
 private:
     void setupUi();
     void setupConnections();
     void showLoginPage();
     void showMainContent(int userId);
+    void retranslateUi();
 
     SideMenu* m_sideMenu;
     QStackedWidget* m_pages;

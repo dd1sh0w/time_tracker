@@ -10,7 +10,8 @@
 struct TaskInfo {
     int taskId;
     QString taskName;
-    int cycles;
+    int cycles;  // Planned cycles
+    int remainingCycles;  // Remaining cycles
     QString status;
     QString priority;
     QString description;

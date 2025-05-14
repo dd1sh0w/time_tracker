@@ -30,38 +30,55 @@ QList<QVariantMap> TaskManager::getAllTasks() const
     return DatabaseManager::instance().getTasks(m_userId);
 }
 
-int TaskManager::createTask(const QString &name)
+int TaskManager::createTask(const QString &name, const QDate &deadline)
 {
     auto ctx = std::map<std::string, std::string>{{ {"name", name.toStdString()} }};
     LOG_INFO("TaskManager", "Creating task", ctx);
+    QVariantMap taskData;
+    taskData["name"] = name;
+    taskData["description"] = tr("New task description...");
+    taskData["deadline"] = QDateTime(deadline, QTime(23, 59, 59));
+    taskData["planned_cycles"] = 1;
+    taskData["remaining_cycles"] = 1;
+    taskData["status"] = "Active"; // Using Active status to match database constraint
+    taskData["user_id"] = m_userId;
     int taskId = DatabaseManager::instance().addTask(
-        m_userId,
-        name,
-        tr("New task description..."),
-        QDateTime(QDate::currentDate().addDays(1), QTime(23, 59, 59)),
-        1, // plannedCycles
-        1, // remainingCycles
-        Task::toString(TaskStatus::Active)
+        taskData
     );
 
     if (taskId != -1) {
+        emit taskCreated(taskId, taskData);
         auto ctx = std::map<std::string, std::string>{{ {"taskId", std::to_string(taskId)} }};
         LOG_INFO("TaskManager", "Task created successfully", ctx);
-        QVariantMap taskData;
-        taskData["id"] = taskId;
-        taskData["name"] = name;
-        taskData["description"] = tr("New task description...");
-        taskData["deadline"] = QDateTime(QDate::currentDate().addDays(1), QTime(23, 59, 59));
-        taskData["planned_cycles"] = 1;
-        taskData["remaining_cycles"] = 1;
-        taskData["status"] = static_cast<int>(TaskStatus::Active);
-        emit taskCreated(taskId, taskData);
-        return taskId;
     } else {
         auto ctx = std::map<std::string, std::string>{{ {"name", name.toStdString()} }};
         LOG_ERROR("TaskManager", "Failed to create task", ctx);
         emit error(tr("Failed to create task"), taskId);
         return -1;
+    }
+    return taskId;
+}
+
+bool TaskManager::startTask(int taskId)
+{
+    auto ctx = std::map<std::string, std::string>{{ {"taskId", std::to_string(taskId)} }};
+    LOG_INFO("TaskManager", "Starting task", ctx);
+    
+    QVariantMap taskData;
+    taskData["id"] = taskId;
+    taskData["status"] = TaskUtil::toString(TaskStatus::InProgress);
+    taskData["user_id"] = m_userId;
+    
+    try {
+        if (DatabaseManager::instance().updateTask(taskData)) {
+            emit taskUpdated(taskId, taskData);
+            return true;
+        }
+        return false;
+    } catch (const std::exception& e) {
+        LOG_ERROR("TaskManager", "Exception starting task", ctx);
+        emit error(tr("Failed to start task: ") + QString::fromStdString(e.what()), taskId);
+        return false;
     }
 }
 
@@ -94,7 +111,7 @@ bool TaskManager::updateTask(int taskId, const QVariantMap &data)
     updateData["deadline"] = data.contains("deadline") ? data["deadline"] : currentTask["deadline"];
     updateData["planned_cycles"] = data.contains("planned_cycles") ? data["planned_cycles"] : currentTask["planned_cycles"];
     updateData["remaining_cycles"] = data.contains("remaining_cycles") ? data["remaining_cycles"] : currentTask["remaining_cycles"];
-    updateData["status"] = Task::toString(statusFromString(data["status"].toString())); // Convert TaskStatus to string before storing in QVariantMap
+    updateData["status"] = TaskUtil::toString(statusFromString(data["status"].toString())); // Convert TaskStatus to string before storing in QVariantMap
 
     try {
         if (DatabaseManager::instance().updateTask(updateData)) {
@@ -102,18 +119,29 @@ bool TaskManager::updateTask(int taskId, const QVariantMap &data)
             LOG_INFO("TaskManager", "Task updated successfully", ctx);
             emit taskUpdated(taskId, updateData);
             return true;
-        } else {
-            auto ctx = std::map<std::string, std::string>{{ {"taskId", std::to_string(taskId)} }};
-            LOG_ERROR("TaskManager", "Failed to update task in database", ctx);
-            emit error(tr("Failed to update task in database"), taskId);
-            return false;
         }
     } catch (const std::exception& e) {
-        auto ctx = std::map<std::string, std::string>{{ {"taskId", std::to_string(taskId)}, {"exception", e.what()} }};
-        LOG_ERROR("TaskManager", "Exception during task update", ctx);
+        auto ctx = std::map<std::string, std::string>{{ {"taskId", std::to_string(taskId)}, {"error", e.what()} }};
+        LOG_ERROR("TaskManager", "Exception updating task", ctx);
         emit error(tr("Failed to update task: ") + QString::fromStdString(e.what()), taskId);
         return false;
     }
+    return false;
+}
+
+int TaskManager::getTotalCycles(int taskId) const
+{
+    auto ctx = std::map<std::string, std::string>{{ {"taskId", std::to_string(taskId)} }};
+    LOG_DEBUG("TaskManager", "Getting total cycles", ctx);
+    
+    QVariantMap taskData = getTaskData(taskId);
+    if (taskData.isEmpty()) {
+        auto ctx = std::map<std::string, std::string>{{ {"taskId", std::to_string(taskId)} }};
+        LOG_WARNING("TaskManager", "Task not found", ctx);
+        return 0;
+    }
+    
+    return taskData.value("planned_cycles", 0).toInt();
 }
 
 bool TaskManager::deleteTask(int taskId)
@@ -129,6 +157,22 @@ bool TaskManager::deleteTask(int taskId)
     }
 
     try {
+        // Check if the task being deleted is the active task
+        int activeTaskId = getActiveTask();
+        if (activeTaskId == taskId) {
+            LOG_INFO("TaskManager", "Clearing active task before deletion", ctx);
+            // Set active task to -1 (no active task)
+            QSqlQuery query;
+            query.prepare("UPDATE active_task SET task_id = -1 WHERE user_id = ? AND task_id = ?");
+            query.addBindValue(m_userId);
+            query.addBindValue(taskId);
+            if (!query.exec()) {
+                auto ctxErr = std::map<std::string, std::string>{{ {"error", query.lastError().text().toStdString()} }};
+                LOG_ERROR("TaskManager", "Failed to clear active task before deletion", ctxErr);
+                // Continue with deletion even if clearing active task fails
+            }
+        }
+
         if (DatabaseManager::instance().deleteTask(taskId)) {
             auto ctx = std::map<std::string, std::string>{{ {"taskId", std::to_string(taskId)} }};
             LOG_INFO("TaskManager", "Task deleted successfully", ctx);
@@ -155,7 +199,7 @@ bool TaskManager::completeTask(int taskId)
     QVariantMap taskData;
     taskData["id"] = taskId;
     taskData["user_id"] = m_userId;
-    taskData["status"] = Task::toString(TaskStatus::Completed);
+    taskData["status"] = TaskUtil::toString(TaskStatus::Completed);
     taskData["completed_at"] = QDateTime::currentDateTime();
 
     try {
@@ -252,13 +296,10 @@ QVariantMap TaskManager::getTaskData(int taskId) const
     return QVariantMap();
 }
 
+// Using TaskUtil for status conversion
 TaskStatus TaskManager::statusFromString(const QString &statusStr)
 {
-    if (statusStr == Task::toString(TaskStatus::Active)) return TaskStatus::Active;
-    if (statusStr == Task::toString(TaskStatus::Completed)) return TaskStatus::Completed;
-    if (statusStr == Task::toString(TaskStatus::Overdue)) return TaskStatus::Overdue;
-    if (statusStr == Task::toString(TaskStatus::Upcoming)) return TaskStatus::Upcoming;
-    return TaskStatus::Active;
+    return TaskUtil::fromString(statusStr);
 }
 
 int TaskManager::getActiveTask() const
@@ -268,29 +309,48 @@ int TaskManager::getActiveTask() const
     QSqlQuery query;
     query.prepare("SELECT task_id FROM active_task WHERE user_id = ?");
     query.addBindValue(m_userId);
-    if (!query.exec() || !query.next()) {
-        auto ctx = std::map<std::string, std::string>{{ {"error", query.lastError().text().toStdString()} }};
-        LOG_ERROR("TaskManager", "Error getting active task", ctx);
-        return -1;
+    if (query.exec() && query.next()) {
+        return query.value(0).toInt();
     }
-    return query.value(0).toInt();
+    return -1; // No active task
 }
 
 bool TaskManager::setActiveTask(int taskId)
 {
-    auto ctx = std::map<std::string, std::string>{{ {"taskId", std::to_string(taskId)} }};
+    auto ctx = std::map<std::string, std::string>{{{"taskId", std::to_string(taskId)}}};
     LOG_INFO("TaskManager", "Setting active task", ctx);
-    QSqlQuery query;
-    query.prepare("INSERT INTO active_task (user_id, task_id) VALUES (?, ?) ON CONFLICT (user_id) DO UPDATE SET task_id = EXCLUDED.task_id");
-    query.addBindValue(m_userId);
-    query.addBindValue(taskId);
-    if (!query.exec()) {
-        auto ctx = std::map<std::string, std::string>{{ {"taskId", std::to_string(taskId)}, {"error", query.lastError().text().toStdString()} }};
+    
+    try {
+        QSqlQuery query;
+        query.prepare("INSERT INTO active_task (user_id, task_id) VALUES (?, ?) ON CONFLICT (user_id) DO UPDATE SET task_id = EXCLUDED.task_id");
+        query.addBindValue(m_userId);
+        query.addBindValue(taskId);
+        
+        if (query.exec()) {
+            auto ctx = std::map<std::string, std::string>{{{"taskId", std::to_string(taskId)}}};
+            LOG_INFO("TaskManager", "Active task set", ctx);
+            
+            // Получаем данные задачи для эмиссии сигнала
+            QVariantMap taskData = getTaskData(taskId);
+            if (taskData.isEmpty()) {
+                auto ctx = std::map<std::string, std::string>{{{"taskId", std::to_string(taskId)}}};
+                LOG_ERROR("TaskManager", "Failed to get task data", ctx);
+                emit error(tr("Failed to get task data"), taskId);
+                return false;
+            }
+            emit taskStarted(taskId, taskData);
+            emit activeTaskChanged(taskId);
+            return true;
+        }
+        
+        auto ctx = std::map<std::string, std::string>{{{"taskId", std::to_string(taskId)}, {"error", query.lastError().text().toStdString()}}};
         LOG_ERROR("TaskManager", "Error setting active task", ctx);
-        emit error(tr("Failed to set active task"), taskId);
+        emit error(tr("Failed to set active task: DB error"), taskId);
+        return false;
+    } catch (const std::exception& e) {
+        auto ctx = std::map<std::string, std::string>{{{"taskId", std::to_string(taskId)}, {"exception", e.what()}}};
+        LOG_ERROR("TaskManager", "Exception setting active task", ctx);
+        emit error(tr("Failed to set active task: TM error"), taskId);
         return false;
     }
-    LOG_INFO("TaskManager", "Active task set", ctx);
-    emit activeTaskChanged(taskId);
-    return true;
 }

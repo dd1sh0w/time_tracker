@@ -43,35 +43,33 @@ private slots:
     void onAddTaskClicked();
     void onEditTaskClicked(const TaskInfo &task);
     void onTaskDeleted(int taskId);
-    int onStartTaskClicked(const TaskInfo& task);
+    void onStartTaskClicked(const TaskInfo& task);
 
 private:
     void setupUi();
     void updateDayCards();
     QString formatTaskDetails(const TaskInfo &task) const;
-
-    int m_userId;
-    QDate m_baseDate;
-    int m_firstCardIndex;
+    
+    // UI Elements
     QVBoxLayout* m_mainLayout;
-    QHBoxLayout *m_dayCardsLayout;
-    TaskManager* m_taskManager;
-
-
-    // Navigation buttons
-    QPushButton *m_leftButton;
-    QPushButton *m_rightButton;
-    QPushButton *m_chooseDayButton;
-    QPushButton *m_addTaskButton;
+    QHBoxLayout* m_dayCardsLayout;
+    QPushButton* m_leftButton;
+    QPushButton* m_rightButton;
+    QPushButton* m_chooseDayButton;
+    QPushButton* m_addTaskButton;
+    QFrame* m_detailsFrame;
+    QTextEdit* m_descriptionBox;
+    QLabel* m_selectedDateLabel;
+    QLabel* m_detailsLabel;
     QPushButton *m_editTaskButton;
     
 
-    // Day cards
+    // Data
+    int m_userId;
+    QDate m_baseDate;
     QList<DayCard*> m_dayCards;
-
-    // Task details display
-    QFrame *m_detailsFrame;
-    QLabel *m_detailsLabel;
+    TaskManager* m_taskManager;
+    int m_firstCardIndex;
 
     // History data storage
     QMap<QDate, QList<TaskInfo>> m_historyData;

@@ -1,8 +1,11 @@
 #include "DayCard.h"
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QFrame>
 #include <QScrollArea>
+#include <QIcon>
+#include <QPainter>
 #include <QDebug>
 #include <QApplication>
 #include <QPushButton>
@@ -122,23 +125,54 @@ void DayCard::updateDisplay()
         statusLabel->setObjectName("taskStatusLabel");
         statusLabel->setProperty("class", "taskStatusLabel");
 
-        // Cycles display with star emojis
+        // Get the enum once
+        TaskStatus st = TaskUtil::fromString(task.status);
+
+        // Show the text
+        statusLabel->setText(TaskUtil::toString(st));
+
+        // Set status property for styling
+        QString statusName = TaskUtil::toString(st).toLower();
+        statusLabel->setProperty("status", statusName);
+        statusLabel->style()->unpolish(statusLabel);
+        statusLabel->style()->polish(statusLabel);
+
+        // Single row of stars showing completed and remaining cycles
         QHBoxLayout* cyclesLayout = new QHBoxLayout();
-        QLabel* cyclesLabel = new QLabel(taskFrame);
-        cyclesLabel->setObjectName("cyclesLabel");
-        cyclesLabel->setProperty("class", "cyclesLabel");
+        cyclesLayout->setSpacing(2);
         
-        // Create star emojis based on cycles
-        QSettings settings;
-        QString starEmoji = settings.value("starEmoji", "★").toString();
-        QString stars;
+        // Create cycles container
+        QWidget *cyclesContainer = new QWidget(this);
+        cyclesContainer->setObjectName("cyclesContainer");
+        cyclesContainer->setProperty("class", "cyclesContainer");
+        QHBoxLayout *starsLayout = new QHBoxLayout(cyclesContainer);
+        starsLayout->setContentsMargins(0, 0, 0, 0);
+        starsLayout->setSpacing(2);
+        
+        // Create star icons for cycles
         for (int i = 0; i < task.cycles; i++) {
-            stars.append(starEmoji);
+            QLabel *starLabel = new QLabel(cyclesContainer);
+            starLabel->setObjectName("starIcon");
+            starLabel->setProperty("class", "starIcon");
+            starLabel->setFixedSize(16, 16);
+            starLabel->setScaledContents(true);
+            
+            // Set star state (filled or hollow)
+            if (i < task.remainingCycles) {
+                starLabel->setProperty("data-state", "filled");
+            } else {
+                starLabel->setProperty("data-state", "hollow");
+            }
+            
+            // Force style update
+            starLabel->style()->unpolish(starLabel);
+            starLabel->style()->polish(starLabel);
+            
+            starsLayout->addWidget(starLabel);
         }
-        cyclesLabel->setText(stars);
         
-        cyclesLayout->addWidget(cyclesLabel);
-        cyclesLayout->addStretch();
+        starsLayout->addStretch();
+        cyclesLayout->addWidget(cyclesContainer);
 
         // Add start button
         QPushButton* startButton = new QPushButton("Start", taskFrame);

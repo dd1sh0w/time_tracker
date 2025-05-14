@@ -3,9 +3,11 @@
 
 #include <QWidget>
 #include <QTimer>
+#include <QSystemTrayIcon>
 
 class QPushButton;
 class QLabel;
+class TaskManager;
 
 enum class PomodoroPhase {
     Work,           // 25 minutes
@@ -13,16 +15,26 @@ enum class PomodoroPhase {
     LongBreak       // 20 minutes
 };
 
+inline const char* toString(PomodoroPhase phase) {
+    switch (phase) {
+        case PomodoroPhase::Work: return "Work";
+        case PomodoroPhase::ShortBreak: return "ShortBreak";
+        case PomodoroPhase::LongBreak: return "LongBreak";
+        default: return "Work";
+    }
+}
+
 class PomodoroTimer : public QWidget
 {
     Q_OBJECT
 public:
-    explicit PomodoroTimer(QWidget *parent = nullptr);
+    explicit PomodoroTimer(QWidget *parent = nullptr, TaskManager *taskManager = nullptr);
     ~PomodoroTimer();
 
 signals:
     void phaseCompleted(PomodoroPhase phase);
     void cycleCompleted(); // Emitted after 4 work phases
+    void activeTaskChanged(const QString &taskName); // Emitted when active task changes
 
 public slots:
     void startTimer();
@@ -37,6 +49,7 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
+    void showNotification(const QString &title, const QString &message);
     static const int WORK_DURATION = 25 * 60;        // 25 minutes in seconds
     static const int SHORT_BREAK_DURATION = 5 * 60;  // 5 minutes in seconds
     static const int LONG_BREAK_DURATION = 20 * 60;  // 20 minutes in seconds
@@ -71,6 +84,15 @@ private:
     QPoint m_center;
     int m_currentPhaseDuration;
     int m_taskRemainingCycles = 0; // Храним оставшиеся циклы задачи
+    TaskManager *m_taskManager; // Указатель на TaskManager
+    
+    // Style properties
+    Q_PROPERTY(int timerCircleWidth READ timerCircleWidth WRITE setTimerCircleWidth)
+    int m_timerCircleWidth = 8; // Default width in pixels
+    
+    // Property getters/setters
+    int timerCircleWidth() const { return m_timerCircleWidth; }
+    void setTimerCircleWidth(int width) { m_timerCircleWidth = width; update(); }
 };
 
 #endif // POMODORO_TIMER_H

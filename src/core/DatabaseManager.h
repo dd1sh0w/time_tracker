@@ -76,13 +76,7 @@ public:
     // Update user profile (e.g., email)
     bool updateUserProfile(int userId, const QVariantMap &profile);
 
-    int addTask(int userId,
-        const QString &name,
-        const QString &description,
-        const QDateTime &deadline,
-        int plannedCycles,
-        int remainingCycles,
-        const QString &status);
+    int addTask(const QVariantMap &taskData);
     QList<QVariantMap> getTasks(int userId);
     bool updateTask(const QVariantMap &taskData);
     bool deleteTask(int taskId);

@@ -1,0 +1,792 @@
+
+/*
+ * Deep Dark Theme
+ * 
+ * A darker, more comfortable theme with enhanced contrast and softer accents
+ * Primary background: #121212 (Very dark gray)
+ * Secondary background: #1e1e1e (Dark gray)
+ * Accent color: #8a2be2 (Purple)
+ * Secondary accent: #38b2ac (Teal)
+ * Text: #f0f0f0 (Off-white)
+ */
+
+/* ======================================
+ * GLOBAL ELEMENTS
+ * ====================================== */
+
+/* Time tracker main container */
+#time_tracker {
+    background-color: #121212;
+}
+
+/* ======================================
+ * NAVIGATION & SIDE MENU
+ * ====================================== */
+
+/* Side menu panel with rich dark background */
+#sideMenu {
+    background-color: #1e1e1e;
+    border: none;
+}
+
+/* Generic side menu buttons with subtle gradient */
+#sideMenu QPushButton {
+    color: #f0f0f0;
+    border: none;
+    padding: 10px;
+    background-color: #1e1e1e;
+    font-size: 25px;
+    font-family: 'Varela Round';
+    qproperty-iconSize: 30px 30px;
+    text-align: left;
+}
+
+#sideMenu QPushButton:hover {
+    background-color: #2d2d2d;
+    color: #ffffff;
+}
+
+#sideMenu QPushButton:pressed {
+    background-color: #262626;
+}
+
+#sideMenu QLabel {
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+/* Specific side menu buttons with custom colors */
+#timerButton {
+    qproperty-icon: url({{timerIcon}});
+    border-left: 3px solid transparent;
+}
+
+#timerButton:checked {
+    border-left: 3px solid #8a2be2;
+    background-color: #262626;
+}
+
+#histButton {
+    qproperty-icon: url({{historyIcon}});
+    border-left: 3px solid transparent;
+}
+
+#histButton:checked {
+    border-left: 3px solid #8a2be2;
+    background-color: #262626;
+}
+
+#settButton {
+    qproperty-icon: url({{settingsIcon}});
+    border-left: 3px solid transparent;
+}
+
+#settButton:checked {
+    border-left: 3px solid #8a2be2;
+    background-color: #262626;
+}
+
+#profButton {
+    qproperty-icon: url({{profileIcon}});
+    border-left: 3px solid transparent;
+}
+
+#profButton:checked {
+    border-left: 3px solid #8a2be2;
+    background-color: #262626;
+}
+
+/* Main menu button */
+QPushButton#menuButton {
+   border: none;
+   qproperty-icon: url({{menuIcon}}) no-repeat center center;
+}
+
+/* ======================================
+ * SCROLLING & CONTAINERS
+ * ====================================== */
+
+/* Scroll area on list page */
+#scrollAreaList, QCalendarWidget {
+    background-color: #121212;
+    border: none;
+}
+
+/* Customizing scrollbars for better visibility */
+QScrollBar:vertical {
+    background: #1a1a1a;
+    width: 10px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #3d3d3d;
+    min-height: 20px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #8a2be2;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar:horizontal {
+    background: #1a1a1a;
+    height: 10px;
+    margin: 0px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #3d3d3d;
+    min-width: 20px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #8a2be2;
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+
+/* ======================================
+ * TASK MANAGEMENT
+ * ====================================== */
+
+/* Task name styling */
+#taskName {
+    color: #f0f0f0;
+    font-size: 14px;
+    border: none;
+    background-color: #121212;
+    padding: 5px;
+}
+
+/* Add task button with gradient effect */
+#addTaskButton {
+    color: #f0f0f0;
+    border: none;
+    border-radius: 19px;
+    padding: 10px;
+    background-color: #8a2be2;
+    font-size: 25px;
+    font-family: 'Varela Round';
+    text-align: center;
+}
+
+#addTaskButton:hover {
+    background-color: #9d41ff;
+}
+
+#addTaskButton:pressed {
+    background-color: #7825c2;
+}
+
+/* Task status styles with improved colors */
+#taskStatusLabel[status="overdue"] {
+    color: #ff6b6b;
+}
+
+#taskStatusLabel[status="onhold"] {
+    color: #ffa502;
+}
+
+#taskStatusLabel[status="completed"] {
+    color: #4faa40;
+}
+
+#taskStatusLabel[status="inprogress"] {
+    color: #5f6bba;
+}
+
+#taskStatusLabel[status="active"] {
+    color: #81d5a7;
+}
+
+#taskStatusLabel[status="review"] {
+    color: #1e90ff;
+}
+
+#taskStatusLabel[status="upcoming"] {
+    color: #ffa502;
+}
+
+#taskStatusLabel[status="cancelled"] {
+    color: #ff6b6b;
+}
+
+/* Task frames and containers */
+.taskFrame {
+    background-color: #1e1e1e;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    padding: 8px;
+}
+
+.taskFrame:hover {
+    border: 1px solid #3a3a3a;
+}
+
+.taskNameLabel {
+    font-weight: bold;
+    color: #f0f0f0;
+}
+
+.taskStatusLabel {
+    color: #a0a0a0;
+}
+
+/* Tasks container */
+#tasksContainer {
+    background: transparent;
+    padding: 5px;
+}
+
+/* ======================================
+ * HISTORY PAGE
+ * ====================================== */
+
+#historyHeader {
+    color: #f0f0f0;
+    font-size: 20px;
+    padding: 15px;
+    background-color: #1e1e1e;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+#historyCalendar {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    selection-background-color: #8a2be2;
+    alternate-background-color: #262626;
+    border: 1px solid #2a2a2a;
+    border-radius: 4px;
+}
+
+#historyCalendar QAbstractItemView {
+    background-color: #1e1e1e;
+    border: 1px solid #2a2a2a;
+    selection-background-color: #8a2be2;
+    selection-color: #f0f0f0;
+}
+
+#historyCalendar QToolButton {
+    color: #f0f0f0;
+    background-color: transparent;
+    border: none;
+}
+
+#historyCalendar QToolButton:hover {
+    color: #ffffff;
+    background-color: #2d2d2d;
+}
+
+#historyTaskTable {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    border: 1px solid #2a2a2a;
+    alternate-background-color: #242424;
+    gridline-color: #2a2a2a;
+}
+
+#historyTaskTable QHeaderView::section {
+    background-color: #262626;
+    color: #f0f0f0;
+    padding: 6px;
+    border: 1px solid #333333;
+    font-weight: bold;
+}
+
+#historyTaskTable QTableView::item:selected {
+    background-color: #8a2be2;
+    color: #ffffff;
+}
+
+#detailsHeaderLabel {
+    font-size: 18px;
+    font-weight: bold;
+    color: #f0f0f0;
+}
+
+/* History Page Header */
+#historyHeader {
+    font-size: 24px;
+    font-weight: bold;
+    color: #f0f0f0;
+}
+
+/* ======================================
+ * START PAGE
+ * ====================================== */
+
+#startPage {
+    background-color: #121212;
+}
+
+#startPage QLabel {
+    color: #f0f0f0;
+    font-size: 16px;
+}
+
+#startPage QLineEdit {
+    padding: 10px;
+    border: 1px solid #333333;
+    border-radius: 6px;
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    font-size: 14px;
+}
+
+#startPage QLineEdit:focus {
+    border: 1px solid #8a2be2;
+}
+
+#startPage QPushButton {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    background-color: #8a2be2;
+    color: #ffffff;
+    font-size: 14px;
+    min-width: 120px;
+}
+
+#startPage QPushButton:hover {
+    background-color: #9d41ff;
+}
+
+#startPage QPushButton:pressed {
+    background-color: #7825c2;
+}
+
+#startPage QCheckBox {
+    color: #f0f0f0;
+    font-size: 14px;
+}
+
+#startPage QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #333333;
+    border-radius: 3px;
+    background-color: #1e1e1e;
+}
+
+#startPage QCheckBox::indicator:checked {
+    background-color: #8a2be2;
+    border: 1px solid #8a2be2;
+}
+
+#startPage QCheckBox::indicator:hover {
+    border: 1px solid #9d41ff;
+}
+
+/* Add spacing between elements */
+#startPage QVBoxLayout > * {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+/* ======================================
+ * POMODORO TIMER
+ * ====================================== */
+
+#pomodoroTimer {
+    background-color: transparent;
+    min-width: 350px;
+    min-height: 350px;
+    padding: 25px;
+    qproperty-timerCircleWidth: 10px;
+}
+
+#pomodoroTimer #labelContainer {
+    background-color: transparent;
+    border: none;
+    border-radius: 175px;
+    min-width: 350px;
+    min-height: 350px;
+}
+
+/* Beautiful glowing time display */
+#pomodoroTimer #timeLabel {
+    color: #ffffff;
+    font-size: 52px;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+#pomodoroTimer #phaseLabel {
+    color: #f0f0f0;
+    font-size: 26px;
+    font-weight: bold;
+    margin: 8px 0;
+}
+
+#pomodoroTimer #cycleLabel {
+    color: #d0d0d0;
+    font-size: 18px;
+    opacity: 0.9;
+    margin: 12px 0;
+}
+
+#pomodoroTimer #activeTaskLabel {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 12px;
+    color: #f0f0f0;
+}
+
+#pomodoroTimer #activeTaskNameLabel {
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: #d0d0d0;
+}
+
+/* Pomodoro control buttons with attractive colors */
+#pomodoroTimer QPushButton {
+    min-width: 120px;
+    padding: 10px 18px;
+    margin: 6px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+#pomodoroTimer #startPauseButton {
+    background-color: #38b2ac;
+}
+
+#pomodoroTimer #startPauseButton:hover {
+    background-color: #4fd1ca;
+}
+
+#pomodoroTimer #startPauseButton:pressed {
+    background-color: #2c8f8a;
+}
+
+#pomodoroTimer #resetButton {
+    background-color: #e53e3e;
+}
+
+#pomodoroTimer #resetButton:hover {
+    background-color: #f56565;
+}
+
+#pomodoroTimer #resetButton:pressed {
+    background-color: #c53030;
+}
+
+#pomodoroTimer #skipButton {
+    background-color: #8a2be2;
+}
+
+#pomodoroTimer #skipButton:hover {
+    background-color: #9d41ff;
+}
+
+#pomodoroTimer #skipButton:pressed {
+    background-color: #7825c2;
+}
+
+#pomodoroTimer QPushButton:disabled {
+    background-color: #4a4a4a;
+    color: #a0a0a0;
+}
+
+#pomodoroTimer #resetTaskButton {
+    padding: 4px 10px;
+    font-size: 13px;
+    border: none;
+    border-radius: 4px;
+    background-color: #262626;
+    color: #f0f0f0;
+}
+
+#pomodoroTimer #resetTaskButton:hover {
+    background-color: #333333;
+}
+
+#pomodoroTimer #resetTaskButton:pressed {
+    background-color: #1a1a1a;
+}
+
+/* ======================================
+ * DAY CARD STYLES
+ * ====================================== */
+
+#dayCard {
+    background-color: #1e1e1e;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    margin: 5px;
+    padding: 10px;
+}
+
+#dayCard:hover {
+    border: 1px solid #3a3a3a;
+}
+
+#dayLabel {
+    font-size: 15px;
+    font-weight: bold;
+    color: #f0f0f0;
+}
+
+#daySeparator {
+    background-color: #2a2a2a;
+    height: 2px;
+    margin: 5px 0;
+}
+
+/* ======================================
+ * SETTINGS PAGE
+ * ====================================== */
+
+#settingsTitleLabel {
+    font-size: 24px;
+    font-weight: bold;
+    color: #f0f0f0;
+    margin-bottom: 15px;
+}
+
+/* Settings page specific controls */
+#settingsPage QLabel {
+    color: #f0f0f0;
+    font-size: 14px;
+}
+
+#settingsPage QSpinBox, #settingsPage QDoubleSpinBox, #settingsPage QComboBox {
+    background-color: #1e1e1e;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    padding: 5px;
+    color: #f0f0f0;
+}
+
+#settingsPage QSpinBox:focus, #settingsPage QDoubleSpinBox:focus, #settingsPage QComboBox:focus {
+    border: 1px solid #8a2be2;
+}
+
+#settingsPage QComboBox::drop-down {
+    border: none;
+    background-color: #262626;
+}
+
+#settingsPage QComboBox QAbstractItemView {
+    background-color: #1e1e1e;
+    border: 1px solid #333333;
+    selection-background-color: #8a2be2;
+}
+
+/* ======================================
+ * CYCLES & PROGRESS INDICATORS
+ * ====================================== */
+
+/* Cycles label with stars */
+.cyclesContainer {
+    spacing: 3px;
+}
+
+.starIcon {
+    width: 18px;
+    height: 18px;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0 2px;
+}
+
+.starIcon[data-state="filled"] {
+    qproperty-pixmap: url({{starFilledIcon}});
+}
+
+.starIcon[data-state="hollow"] {
+    qproperty-pixmap: url({{starHollowIcon}});
+}
+
+/* Style for hollow stars (☆) with improved visibility */
+.cyclesLabel:not(:empty)::before {
+    content: "\2606";  /* Unicode for hollow star */
+    color: #4a4a4a;    /* Darker color for hollow stars */
+}
+
+/* Override with filled stars (★) for completed cycles */
+.cyclesLabel:not(:empty)::before {
+    content: "";  /* Clear default content */
+}
+
+.cyclesLabel:not(:empty) {
+    color: #4a4a4a;  /* Default color for hollow stars */
+}
+
+/* Filled stars for completed cycles with brighter color */
+.cyclesLabel:not(:empty) {
+    display: inline-block;
+    position: relative;
+    color: #ffc107;  /* Amber color for filled stars */
+}
+
+.cyclesLabel:not(:empty)::after {
+    content: attr(data-filled);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    color: #ffc107;  /* Amber color for filled stars */
+}
+
+/* ======================================
+ * UTILITY COMPONENTS
+ * ====================================== */
+
+.editButton {
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+    color: #a0a0a0;
+    background: transparent;
+}
+
+.editButton:hover {
+    color: #8a2be2;
+}
+
+/* Modal dialogs and popups */
+QDialog {
+    background-color: #121212;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+}
+
+QDialog QLabel {
+    color: #f0f0f0;
+}
+
+QMessageBox {
+    background-color: #121212;
+}
+
+QMessageBox QLabel {
+    color: #f0f0f0;
+}
+
+QMessageBox QPushButton {
+    background-color: #8a2be2;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    min-width: 80px;
+}
+
+QMessageBox QPushButton:hover {
+    background-color: #9d41ff;
+}
+
+QMessageBox QPushButton:pressed {
+    background-color: #7825c2;
+}
+
+/* Context menus with custom styling */
+QMenu {
+    background-color: #1e1e1e;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+QMenu::item {
+    background-color: transparent;
+    padding: 5px 25px 5px 20px;
+    border-radius: 3px;
+    min-width: 100px;
+    color: #f0f0f0;
+}
+
+QMenu::item:selected {
+    background-color: #8a2be2;
+    color: #ffffff;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: #333333;
+    margin: 4px 10px;
+}
+
+/* Tooltips with custom styling */
+QToolTip {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+/* Progress bars with modern styling */
+QProgressBar {
+    background-color: #1e1e1e;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    text-align: center;
+    color: #f0f0f0;
+}
+
+QProgressBar::chunk {
+    background-color: #8a2be2;
+    border-radius: 3px;
+}
+
+/* Tab widget styling */
+QTabWidget::pane {
+    border: 1px solid #333333;
+    background-color: #1e1e1e;
+}
+
+QTabBar::tab {
+    background-color: #262626;
+    color: #a0a0a0;
+    border: 1px solid #333333;
+    border-bottom: none;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    padding: 8px 12px;
+    min-width: 80px;
+}
+
+QTabBar::tab:selected {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    border-bottom: 2px solid #8a2be2;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: #2d2d2d;
+    color: #d0d0d0;
+}
+
+/* Group box styling */
+QGroupBox {
+    border: 1px solid #333333;
+    border-radius: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+    color: #f0f0f0;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center;
+    padding: 0 5px;
+    color: #d0d0d0;
+}

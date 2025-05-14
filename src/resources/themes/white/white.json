@@ -3,8 +3,10 @@
     "font": "VarelaRoundRegular.ttf",
 
     "menuIcon": "./icons/menu.png",
-    "taskIcon": "./icons/task.png",
+    "timerIcon": "./icons/timer.png",
     "historyIcon": "./icons/history.png",
     "settingsIcon": "./icons/settings.png",
-    "profileIcon": "./icons/theme.png"
+    "profileIcon": "./icons/theme.png",
+    "starFilledIcon": "./icons/star_filled.png",
+    "starHollowIcon": "./icons/star_hollow.png"
 }

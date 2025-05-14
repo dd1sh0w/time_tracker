@@ -1,6 +1,7 @@
 #include "DatabaseManager.h"
 #include <QDebug>
 #include "../logging/logger.h"
+#include "Task.h"
 
 DatabaseManager::DatabaseManager(QObject *parent) : QObject(parent)
 {
@@ -121,26 +122,28 @@ bool DatabaseManager::updateUserProfile(int userId, const QVariantMap &profile)
     return true;
 }
 
-int DatabaseManager::addTask(int userId,
-                             const QString &name,
-                             const QString &description,
-                             const QDateTime &deadline,
-                             int plannedCycles,
-                             int remainingCycles,
-                             const QString &status)
+int DatabaseManager::addTask(const QVariantMap &taskData)
 {
-    auto ctx = std::map<std::string, std::string>{{{"userId", std::to_string(userId)}, {"name", name.toStdString()} }};
+    auto ctx = std::map<std::string, std::string>{{{"userId", taskData["user_id"].toString().toStdString()}, {"name", taskData["name"].toString().toStdString()} }};
     LOG_INFO("DatabaseManager", "Adding task to DB", ctx);
     QSqlQuery query(m_db);
-    query.prepare("INSERT INTO tasks (user_id, name, description, deadline, planned_cycles, remaining_cycles, status) "
-                  "VALUES (:user_id, :name, :description, :deadline, :planned_cycles, :remaining_cycles, :status) RETURNING id");
-    query.bindValue(":user_id", userId);
-    query.bindValue(":name", name);
-    query.bindValue(":description", description);
-    query.bindValue(":deadline", deadline);
-    query.bindValue(":planned_cycles", plannedCycles);
-    query.bindValue(":remaining_cycles", remainingCycles);
-    query.bindValue(":status", status);
+    query.prepare(
+        "INSERT INTO tasks "
+        "(user_id, name, description, deadline, planned_cycles, remaining_cycles, status) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id"
+    );
+    query.addBindValue(taskData["user_id"]);
+    query.addBindValue(taskData["name"]);
+    query.addBindValue(taskData["description"]);
+    query.addBindValue(taskData["deadline"]);
+    query.addBindValue(taskData["planned_cycles"]);
+    query.addBindValue(taskData["remaining_cycles"]);
+    query.addBindValue(
+        TaskUtil::toString(
+            TaskUtil::fromString(taskData["status"].toString())
+        )
+    );
+
     if(!query.exec()){
         auto ctxErr = std::map<std::string, std::string>{{{"error", query.lastError().text().toStdString()}}};
         LOG_ERROR("DatabaseManager", "Failed to add task", ctxErr);
@@ -185,18 +188,24 @@ bool DatabaseManager::updateTask(const QVariantMap &taskData)
     auto ctx = std::map<std::string, std::string>{{{"taskId", taskData["id"].toString().toStdString()} }};
     LOG_INFO("DatabaseManager", "Updating task in DB", ctx);
     QSqlQuery query(m_db);
-    query.prepare("UPDATE tasks SET name = :name, description = :description, deadline = :deadline, "
-                  "planned_cycles = :planned_cycles, "
-                  "remaining_cycles = :remaining_cycles, "
-                  "status = :status "
-                  "WHERE id = :id");
+    query.prepare(
+        "UPDATE tasks SET "
+        "name = :name, description = :description, deadline = :deadline, "
+        "planned_cycles = :planned_cycles, remaining_cycles = :remaining_cycles, "
+        "status = :status "
+        "WHERE id = :id"
+    );
     query.bindValue(":id", taskData["id"]);
     query.bindValue(":name", taskData["name"]);
     query.bindValue(":description", taskData["description"]);
     query.bindValue(":deadline", taskData["deadline"]);
     query.bindValue(":planned_cycles", taskData["planned_cycles"]);
     query.bindValue(":remaining_cycles", taskData["remaining_cycles"]);
-    query.bindValue(":status", taskData["status"]);
+    query.bindValue(":status",
+        TaskUtil::toString(
+            TaskUtil::fromString(taskData["status"].toString())
+        )
+    );
     if (!query.exec()) {
         auto ctxErr = std::map<std::string, std::string>{{{"error", query.lastError().text().toStdString()}}};
         LOG_ERROR("DatabaseManager", "ERROR: update task is failed", ctxErr);

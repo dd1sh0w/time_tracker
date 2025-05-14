@@ -3,6 +3,7 @@
 #include "../../core/Task.h"
 #include "../components/DayCard.h"
 #include <QCalendarWidget>
+#include <QTextEdit>
 #include <QMessageBox>
 #include <QDebug>
 #include <algorithm>
@@ -76,18 +77,16 @@ void HistoryPage::onAddTaskClicked()
             return;
         }
         QDate date = dateEdit->date();
-        int taskId = DatabaseManager::instance().addTask(
-            m_userId, 
+        auto ctx = std::map<std::string, std::string>{{{"date", date.toString(Qt::ISODate).toStdString()}, {"name", taskName.toStdString()}}};
+        LOG_DEBUG("HistoryPage", "Creating task with selected date", ctx);
+        int taskId = m_taskManager->createTask(
             taskName,
-            "",  // Empty description
-            QDateTime(date, QTime(0, 0, 0)),  // Convert QDate to QDateTime at midnight
-            1,  // Default planned cycles
-            1,  // Default remaining cycles
-            "Active"  // Default status
+            date
         );
         if (taskId > 0) {
             auto ctx2 = std::map<std::string, std::string>{{{"taskId", std::to_string(taskId)}}};
             LOG_INFO("HistoryPage", "Task added successfully", ctx2);
+            // Use the selected date for history tracking
             m_historyData[date].append({taskId, taskName});
             m_firstCardIndex = 0;
             updateDayCards();
@@ -99,12 +98,11 @@ void HistoryPage::onAddTaskClicked()
     }
 }
 
-HistoryPage::onStartTaskClicked(const TaskInfo& task)
+void HistoryPage::onStartTaskClicked(const TaskInfo& task)
 {
     auto ctx = std::map<std::string, std::string>{{{"taskId", std::to_string(task.taskId)}}};
     LOG_INFO("HistoryPage", "Start task from history clicked", ctx);
     emit startTaskClicked(task);
-    return 1;
 }
 
 HistoryPage::~HistoryPage() {
@@ -124,7 +122,6 @@ void HistoryPage::setupUi()
     QLabel* headerLabel = new QLabel("Task History", this);
     headerLabel->setObjectName("historyHeader");
     headerLabel->setProperty("class", "historyHeader");
-    headerLabel->setStyleSheet("font-size: 24px; font-weight: bold;");
 
     // Add Task button
     m_addTaskButton = new QPushButton("Add Task", this);
@@ -143,21 +140,29 @@ void HistoryPage::setupUi()
     QHBoxLayout* contentLayout = new QHBoxLayout();
     contentLayout->setSpacing(10);
     
+    // Navigation container
+    QWidget* navWidget = new QWidget(this);
+    navWidget->setObjectName("historyNavigation");
+    QHBoxLayout* navLayout = new QHBoxLayout(navWidget);
+    navLayout->setSpacing(10);
+    navLayout->setContentsMargins(0, 0, 0, 0);
+    
     // Left navigation button
     m_leftButton = new QPushButton(this);
     m_leftButton->setIcon(QIcon(":/icons/arrow-left.png"));
     m_leftButton->setIconSize(QSize(24, 24));
     m_leftButton->setFixedSize(40, 200);
-    m_leftButton->setObjectName("navButton");
-    m_leftButton->setProperty("class", "navButton");
+    m_leftButton->setObjectName("prevDayButton");
+    m_leftButton->setProperty("class", "prevDayButton");
     m_leftButton->setCursor(Qt::PointingHandCursor);
     
     // Cards container
     QWidget* cardsWidget = new QWidget(this);
+    cardsWidget->setObjectName("dayCardsContainer");
     cardsWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     m_dayCardsLayout = new QHBoxLayout(cardsWidget);
     m_dayCardsLayout->setSpacing(15);  // Increased spacing between cards
-    m_dayCardsLayout->setContentsMargins(0, 0, 0, 0);
+    m_dayCardsLayout->setContentsMargins(10, 10, 10, 10);
     m_dayCardsLayout->setAlignment(Qt::AlignCenter);  // Center the cards
     
     // Create 5 day cards
@@ -175,21 +180,30 @@ void HistoryPage::setupUi()
     m_rightButton->setIcon(QIcon(":/icons/arrow-right.png"));
     m_rightButton->setIconSize(QSize(24, 24));
     m_rightButton->setFixedSize(40, 200);
-    m_rightButton->setObjectName("navButton");
-    m_rightButton->setProperty("class", "navButton");
+    m_rightButton->setObjectName("nextDayButton");
+    m_rightButton->setProperty("class", "nextDayButton");
     m_rightButton->setCursor(Qt::PointingHandCursor);
+    
+    // Add navigation buttons to layout
+    navLayout->addWidget(m_leftButton);
+    navLayout->addWidget(cardsWidget, 1);
+    navLayout->addWidget(m_rightButton);
 
-    contentLayout->addWidget(m_leftButton);
-    contentLayout->addWidget(cardsWidget, 1);
-    contentLayout->addWidget(m_rightButton);
+    // Add navigation widget to content layout
+    contentLayout->addWidget(navWidget);
     
     // Date selection
     QHBoxLayout* dateSelectionLayout = new QHBoxLayout();
+    m_selectedDateLabel = new QLabel(QDate::currentDate().toString("dd.MM.yyyy"), this);
+    m_selectedDateLabel->setObjectName("selectedDateLabel");    
+    
     m_chooseDayButton = new QPushButton("Select Date", this);
-    m_chooseDayButton->setObjectName("chooseDayButton");
-    m_chooseDayButton->setProperty("class", "chooseDayButton");
+    m_chooseDayButton->setObjectName("selectDateButton");
+    m_chooseDayButton->setProperty("class", "selectDateButton");
     m_chooseDayButton->setCursor(Qt::PointingHandCursor);
+    
     dateSelectionLayout->addStretch();
+    dateSelectionLayout->addWidget(m_selectedDateLabel);
     dateSelectionLayout->addWidget(m_chooseDayButton);
     dateSelectionLayout->addStretch();
 
@@ -202,9 +216,15 @@ void HistoryPage::setupUi()
     QVBoxLayout* detailsLayout = new QVBoxLayout(m_detailsFrame);
     detailsLayout->setSpacing(10);
     detailsLayout->setContentsMargins(15, 15, 15, 15);
+    
+    // Description box
+    m_descriptionBox = new QTextEdit(this);
+    m_descriptionBox->setObjectName("descriptionBox");
+    m_descriptionBox->setReadOnly(true);
+    m_descriptionBox->setFrameStyle(QFrame::NoFrame);
 
     QLabel* detailsHeaderLabel = new QLabel("Task Description", m_detailsFrame);
-    detailsHeaderLabel->setStyleSheet("font-size: 18px; font-weight: bold;");
+    detailsHeaderLabel->setObjectName("detailsHeaderLabel");
     
     m_detailsLabel = new QLabel(m_detailsFrame);
     m_detailsLabel->setWordWrap(true);
@@ -247,10 +267,12 @@ void HistoryPage::loadHistory()
         info.taskId = record.value("id").toInt();
         info.taskName = record.value("name").toString();
         info.cycles = record.value("planned_cycles").toInt();
+        info.remainingCycles = record.value("remaining_cycles").toInt();
         info.status = record.value("status").toString();
         info.completedAt = record.value("updated_at").toDateTime();
+        info.deadline = record.value("deadline").toDateTime().date();
         info.details = formatTaskDetails(info);
-        historyMap[info.completedAt.date()].append(info);
+        historyMap[info.deadline].append(info);
     }
     m_historyData = historyMap;
     updateDayCards();
@@ -375,10 +397,15 @@ void HistoryPage::onEditTaskClicked(const TaskInfo &task)
 {
     auto ctx = std::map<std::string, std::string>{{{"taskId", std::to_string(task.taskId)}}};
     LOG_INFO("HistoryPage", "Edit task clicked", ctx);
+    // Make sure the status is in the correct format (no spaces)
+    QString formattedStatus = task.status;
+    formattedStatus.replace(" ", "");
+    
     TaskSettingsDialog dialog(task.taskName,
                              task.description,
                              task.deadline,
                              task.cycles,
+                             formattedStatus,
                              this);
     
     // Connect the delete signal
@@ -392,9 +419,29 @@ void HistoryPage::onEditTaskClicked(const TaskInfo &task)
         taskData["name"] = dialog.taskName();
         taskData["description"] = dialog.taskDescription();
         taskData["deadline"] = dialog.taskDeadline();
-        taskData["planned_cycles"] = dialog.taskCycles();
-        taskData["remaining_cycles"] = dialog.taskCycles();
-        taskData["status"] = Task::toString(TaskStatus::Active); // Add status if needed
+        int newPlannedCycles = dialog.taskCycles();
+        int newRemainingCycles = task.remainingCycles;
+        
+        // If planned cycles increased, add the difference to remaining cycles
+        if (newPlannedCycles > task.cycles) {
+            newRemainingCycles += (newPlannedCycles - task.cycles);
+        } 
+        // If planned cycles decreased, ensure remaining cycles don't exceed new total
+        else if (newPlannedCycles < task.cycles) {
+            newRemainingCycles = qMin(newRemainingCycles, newPlannedCycles);
+        }
+        
+        taskData["planned_cycles"] = newPlannedCycles;
+        taskData["remaining_cycles"] = newRemainingCycles;
+        // Get the status from the dialog and ensure it's in the correct format
+        QString newStatus = dialog.taskStatus();
+        taskData["status"] = newStatus;
+        
+        auto statusCtx = std::map<std::string, std::string>{
+            {"taskId", std::to_string(task.taskId)},
+            {"newStatus", newStatus.toStdString()}
+        };
+        LOG_INFO("HistoryPage", "Updating task status", statusCtx);
         
         DatabaseManager::instance().updateTask(taskData);
         loadHistory();
@@ -431,7 +478,13 @@ void HistoryPage::onTaskUpdated(const QVariantMap &taskData)
                     for (auto &dateTasks : m_historyData) {
                         for (auto &histTask : dateTasks) {
                             if (histTask.taskId == taskId) {
-                                histTask.cycles = task.value("planned_cycles").toInt() - task.value("remaining_cycles").toInt();
+                                // Update all task properties
+                                histTask.taskName = task.value("name").toString();
+                                histTask.description = task.value("description").toString();
+                                histTask.deadline = task.value("deadline").toDate();
+                                histTask.cycles = task.value("planned_cycles").toInt();
+                                histTask.remainingCycles = task.value("remaining_cycles").toInt();
+                                histTask.cycles = histTask.cycles - histTask.remainingCycles;
                                 histTask.status = task.value("status").toString();
                                 histTask.details = formatTaskDetails(histTask);
                                 break;

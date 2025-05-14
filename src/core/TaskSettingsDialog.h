@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QDate>
+#include <QComboBox>
 
 class QLineEdit;
 class QTextEdit;
@@ -18,6 +19,7 @@ public:
                                 const QString &description,
                                 const QDate &deadline,
                                 int cycles,
+                                const QString &status = "Not Started",
                                 QWidget *parent = nullptr);
     ~TaskSettingsDialog();
 
@@ -25,6 +27,7 @@ public:
     QString taskDescription() const;
     QDate taskDeadline() const;
     int taskCycles() const;
+    QString taskStatus() const;
 
 signals:
     void taskDeleted();
@@ -40,6 +43,7 @@ private:
     QTextEdit *m_descriptionEdit;
     QDateEdit *m_deadlineEdit;
     QSpinBox *m_cyclesSpinBox;
+    QComboBox *m_statusComboBox;
     QPushButton *m_applyButton;
     QPushButton *m_deleteButton;
 };

@@ -6,23 +6,34 @@
 #include <QVariantMap>
 
 enum class TaskStatus {
-    Active,
-    Completed,
-    Overdue,
-    Upcoming,
-    Cancelled
+    Active,       // Ready to be worked on
+    InProgress,   // Currently being worked on
+    OnHold,       // Temporarily paused
+    Completed,    // Successfully finished
+    Review,       // Needs review before finalization
+    Overdue,      // Deadline passed but not completed
+    Upcoming,     // Scheduled for future
+    Cancelled     // Cancelled and won't be completed
 };
 
 class QPushButton;
 class QLabel;
 class QHBoxLayout;
 
+// Task status conversion utility class
+class TaskUtil {
+public:
+    static QString toString(TaskStatus status);
+    static TaskStatus fromString(const QString &statusStr);
+};
+
 class Task : public QWidget
 {
     Q_OBJECT
+
 public:
-    explicit Task(int id, QWidget *parent = nullptr);
-    ~Task();
+    explicit Task(int id = 0, QWidget *parent = nullptr);
+    ~Task() override;
 
     int id() const { return m_id; }
     QString taskName() const { return m_taskName; }
@@ -32,33 +43,18 @@ public:
     int remainingCycles() const { return m_remainingCycles; }
     TaskStatus status() const { return m_status; }
 
-    void setTaskName(const QString &name) { m_taskName = name; updateDisplay(); }
-    void setDescription(const QString &description) { m_description = description; updateDisplay(); }
-    void setDeadline(const QDate &deadline) { m_deadline = deadline; updateDisplay(); }
-    void setPlannedCycles(int cycles) { m_plannedCycles = cycles; updateDisplay(); }
-    void setRemainingCycles(int cycles) { m_remainingCycles = cycles; updateDisplay(); emit remainingCyclesChanged(cycles); }
-    void setStatus(TaskStatus status) { m_status = status; updateDisplay(); }
-    void setId(int id) { m_id = id; }
+    void setTaskName(const QString &name);
+    void setDescription(const QString &description);
+    void setDeadline(const QDate &deadline);
+    void setPlannedCycles(int cycles);
+    void setRemainingCycles(int cycles);
+    void setStatus(TaskStatus status);
+    void setId(int id);
+    QString statusText() const;
+
+    void updateDisplay();
     void updateTask(const QString &name, const QString &description, const QDate &deadline, int plannedCycles);
     void updateCycles(int cycles);
-    void updateDisplay();
-
-    static QString toString(TaskStatus status) {
-        switch (status) {
-        case TaskStatus::Active:
-            return "Active";
-        case TaskStatus::Completed:
-            return "Completed";
-        case TaskStatus::Overdue:
-            return "Overdue";
-        case TaskStatus::Upcoming:
-            return "Upcoming";
-        case TaskStatus::Cancelled:
-            return "Cancelled";
-        default:
-            return "Unknown";
-        }
-    }
 
 signals:
     void taskDeleted(int taskId);
@@ -68,12 +64,7 @@ signals:
     void remainingCyclesChanged(int cycles);
     void taskStarted(int taskId, const QVariantMap &taskData);
 
-private slots:
-    void openTaskSettings();
-
 private:
-    void setupUi();
-
     int m_id;
     QString m_taskName;
     QString m_description;
@@ -81,13 +72,16 @@ private:
     int m_plannedCycles;
     int m_remainingCycles;
     TaskStatus m_status;
-
+    QHBoxLayout *m_layout;
     QPushButton *tt_startButton;
     QPushButton *tt_nameButton;
+    QLabel *tt_statusLabel;
     QLabel *tt_deadlineLabel;
     QLabel *tt_cyclesLabel;
     QLabel *tt_descriptionLabel;
-    QHBoxLayout *m_layout;
+
+    void setupUi();
+    void openTaskSettings();
 };
 
 #endif // TASK_H

@@ -241,22 +241,6 @@ void PomodoroTimer::showNotification(const QString &title, const QString &messag
 
 void PomodoroTimer::startNextPhase()
 {
-    // Show notification for the ending phase
-    switch (m_currentPhase) {
-        case PomodoroPhase::Work:
-            showNotification(tr("Work Phase Complete"), 
-                          tr("Great job! Time for a break."));
-            break;
-        case PomodoroPhase::ShortBreak:
-            showNotification(tr("Short Break Over"), 
-                          tr("Break time is over. Let's get back to work!"));
-            break;
-        case PomodoroPhase::LongBreak:
-            showNotification(tr("Long Break Over"), 
-                          tr("Break time is over. Ready for more focused work?"));
-            break;
-    }
-
     auto ctx = std::map<std::string, std::string>{{{"prevPhase", std::to_string(static_cast<int>(m_currentPhase))}, {"completedPomodoros", std::to_string(m_completedPomodoros)}}};
     LOG_INFO("PomodoroTimer", "Starting next phase", ctx);
     

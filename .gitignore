@@ -37,6 +37,10 @@ build
 *.out
 *.app
 
+# Batch files
+*.bat
+*.cmd
+
 # Qt one
 *~
 *.autosave
